@@ -1,0 +1,208 @@
+--[[ 
+    Disclaimer:
+    This script is for educational purposes only.
+    Misuse of this script may lead to account bans or other consequences.
+    Features marked with "(May not work)" are untested and may not function as expected.
+    Always use scripts responsibly!
+
+]]
+
+-- Services (used to interact with Roblox's API)
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Default Variables (for Speed, Jump, and GUI Colors)
+local FOVValue = 20 -- Default FOV for Silent Aim
+local SpeedValue = 50 -- Default Speed for Speed Hack
+local JumpValue = 100 -- Default Jump Power for Jump Hack
+
+-- GUI Colors (customizable via the Editor tab)
+local GUIColors = {
+    Background = Color3.fromRGB(40, 40, 50), -- Dark gray for modern look
+    Text = Color3.fromRGB(255, 255, 255), -- White text
+    ButtonBackground = Color3.fromRGB(200, 40, 40), -- Red for inactive buttons
+    ButtonActive = Color3.fromRGB(40, 200, 40), -- Green for active buttons
+    TabActive = Color3.fromRGB(100, 100, 255), -- Blue for active tabs
+    TabInactive = Color3.fromRGB(40, 40, 50) -- Dark gray for inactive tabs
+}
+
+-- Helper Function: Create UI Elements
+local function createUIElement(className, properties, parent)
+    local element = Instance.new(className)
+    for property, value in pairs(properties) do
+        element[property] = value
+    end
+    element.Parent = parent
+    return element
+end
+
+-- Initialize the GUI
+local ScreenGui = createUIElement("ScreenGui", {
+    Name = "CourtsMM2GUI",
+    Parent = game:GetService("CoreGui"), -- Parent GUI to CoreGui to ensure visibility
+    Enabled = true -- Start with the GUI enabled
+}, nil)
+
+-- Main Frame (container for the entire GUI)
+local Frame = createUIElement("Frame", {
+    Name = "MainFrame",
+    BackgroundColor3 = GUIColors.Background, -- Set background color from GUIColors
+    BackgroundTransparency = 0.2, -- Slight transparency for a modern look
+    Position = UDim2.new(0.35, 0, 0.2, 0), -- Centered on the screen
+    Size = UDim2.new(0, 600, 0, 700), -- Dimensions of the GUI
+    Visible = false -- Initially hidden for fade-in effect
+}, ScreenGui)
+
+-- Add rounded corners and a border to the frame
+createUIElement("UICorner", { CornerRadius = UDim.new(0, 12) }, Frame)
+createUIElement("UIStroke", { Thickness = 1, Color = GUIColors.TabActive }, Frame)
+
+-- Title of the GUI
+local Title = createUIElement("TextLabel", {
+    Name = "Title",
+    BackgroundColor3 = GUIColors.Background, -- Match the background color
+    BackgroundTransparency = 0.3, -- Slightly translucent
+    Size = UDim2.new(1, 0, 0.1, 0), -- Full width at the top
+    Font = Enum.Font.GothamBold, -- Bold font for the title
+    Text = "Courts MM2 (Ultimate GUI)", -- Title text
+    TextColor3 = GUIColors.Text, -- White text
+    TextScaled = true -- Scale text to fit the label
+}, Frame)
+
+-- Tab Bar (container for the tabs)
+local TabBar = createUIElement("Frame", {
+    Name = "TabBar",
+    BackgroundColor3 = GUIColors.Background, -- Match the frame background
+    Size = UDim2.new(1, 0, 0.1, 0), -- Full width under the title
+    Position = UDim2.new(0, 0, 0.1, 0) -- Positioned just below the title
+}, Frame)
+
+-- Define Tabs (each tab contains a button and a corresponding page)
+local Tabs = {
+    { Name = "Main", Button = nil, Page = nil },
+    { Name = "ESP", Button = nil, Page = nil },
+    { Name = "Unlocks", Button = nil, Page = nil },
+    { Name = "Misc", Button = nil, Page = nil },
+    { Name = "Troll", Button = nil, Page = nil },
+    { Name = "Editor", Button = nil, Page = nil },
+    { Name = "Credits", Button = nil, Page = nil }
+}
+
+-- Create Tabs (buttons and pages)
+local function createTab(tab, index)
+    local buttonWidth = 1 / #Tabs -- Calculate button width based on the number of tabs
+    tab.Button = createUIElement("TextButton", {
+        Name = tab.Name .. "Tab",
+        BackgroundColor3 = index == 1 and GUIColors.TabActive or GUIColors.TabInactive, -- Active color for the first tab
+        Size = UDim2.new(buttonWidth, 0, 1, 0), -- Equal size for all buttons
+        Position = UDim2.new((index - 1) * buttonWidth, 0, 0, 0), -- Position based on index
+        Font = Enum.Font.Gotham, -- Clean font style
+        Text = tab.Name, -- Tab name as text
+        TextColor3 = GUIColors.Text, -- White text
+        TextScaled = true -- Scale text to fit the button
+    }, TabBar)
+
+    -- Create a corresponding page for each tab
+    tab.Page = createUIElement("Frame", {
+        Name = tab.Name .. "Page",
+        BackgroundColor3 = GUIColors.Background, -- Match the frame background
+        BackgroundTransparency = 1, -- Fully transparent by default
+        Size = UDim2.new(1, 0, 0.8, 0), -- Full width and 80% of the height
+        Position = UDim2.new(0, 0, 0.2, 0), -- Positioned below the tab bar
+        Visible = index == 1 -- Only the first tab is visible by default
+    }, Frame)
+end
+
+-- Loop through the tabs and create them
+for i, tab in ipairs(Tabs) do
+    createTab(tab, i)
+end
+
+-- Tab Switching Logic
+for i, tab in ipairs(Tabs) do
+    tab.Button.MouseButton1Click:Connect(function()
+        for j, otherTab in ipairs(Tabs) do
+            otherTab.Button.BackgroundColor3 = GUIColors.TabInactive -- Deactivate other tabs
+            otherTab.Page.Visible = false -- Hide other pages
+        end
+        tab.Button.BackgroundColor3 = GUIColors.TabActive -- Activate the clicked tab
+        tab.Page.Visible = true -- Show the corresponding page
+    end)
+end
+
+-- Fade-In and Fade-Out Effect for the GUI
+local function fadeGUI(state)
+    if state then
+        Frame.Visible = true -- Make the frame visible
+        Frame.BackgroundTransparency = 1 -- Start fully transparent
+        local tween = TweenService:Create(Frame, TweenInfo.new(0.5), { BackgroundTransparency = 0.2 }) -- Smooth fade-in
+        tween:Play()
+    else
+        local tween = TweenService:Create(Frame, TweenInfo.new(0.5), { BackgroundTransparency = 1 }) -- Smooth fade-out
+        tween:Play()
+        tween.Completed:Connect(function()
+            Frame.Visible = false -- Hide the frame after fade-out
+        end)
+    end
+end
+
+-- Keybind to Toggle GUI Visibility
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == Enum.KeyCode.Insert then
+        fadeGUI(not Frame.Visible) -- Toggle visibility with fade effect
+    end
+end)
+
+-- Populate Tabs with Features (Main, ESP, Unlocks, Misc, Troll, Editor, Credits)
+-- Example: Adding a Speed Hack Button to the Main Tab
+local function addOptionButton(name, text, position, parent, callback)
+    local button = createUIElement("TextButton", {
+        Name = name,
+        BackgroundColor3 = GUIColors.ButtonBackground, -- Default red for inactive buttons
+        Position = position,
+        Size = UDim2.new(0.8, 0, 0.1, 0), -- 80% width and 10% height of the parent
+        Font = Enum.Font.Gotham, -- Clean font style
+        Text = text .. " (Off)", -- Default text with "(Off)" state
+        TextColor3 = GUIColors.Text, -- White text
+        TextScaled = true -- Scale text to fit the button
+    }, parent)
+
+    createUIElement("UICorner", { CornerRadius = UDim.new(0, 10) }, button) -- Rounded corners
+
+    local enabled = false -- Track the button state
+    button.MouseButton1Click:Connect(function()
+        enabled = not enabled -- Toggle the state
+        if enabled then
+            button.Text = text .. " (On)" -- Update the text to "(On)"
+            button.BackgroundColor3 = GUIColors.ButtonActive -- Change to green for active state
+            callback(true) -- Call the provided callback with 'true'
+        else
+            button.Text = text .. " (Off)" -- Update the text to "(Off)"
+            button.BackgroundColor3 = GUIColors.ButtonBackground -- Change back to red for inactive state
+            callback(false) -- Call the provided callback with 'false'
+        end
+    end)
+end
+
+-- Add Features to the Main Tab
+local MainTab = Tabs[1]
+addOptionButton("SpeedHack", "Speed Hack", UDim2.new(0.1, 0, 0.05, 0), MainTab.Page, function(enabled)
+    if enabled then
+        LocalPlayer.Character.Humanoid.WalkSpeed = SpeedValue
+    else
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16 -- Reset to default speed
+    end
+end)
+
+addOptionButton("JumpHack", "Jump Hack", UDim2.new(0.1, 0, 0.2, 0), MainTab.Page, function(enabled)
+    if enabled then
+        LocalPlayer.Character.Humanoid.JumpPower = JumpValue
+    else
+        LocalPlayer.Character.Humanoid.JumpPower = 50 -- Reset to default jump power
+    end
+end)
+
+-- Additional features for other tabs can be added similarly...
